@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
-import sys
-import os
+import argparse
 import datetime
 from date_dimension import DateDimension
 
@@ -14,7 +13,7 @@ def iterate_calendar(start, end):
         yield curr
 
 
-def generate_date_dimension(start, end=datetime.date(2020,12,31)):
+def generate_date_dimension(start, end):
     e = {
         'year_number_in_epoch': 0,
         'half_number_in_epoch': 0,
@@ -44,10 +43,25 @@ def generate_date_dimension(start, end=datetime.date(2020,12,31)):
         yield date_dim
 
 
-if __name__ == '__main__':
-    #with open('date_dimension_inserts.sql', 'w') as f:
-    #    for dim in generate_date_dimension(datetime.date(2000, 1, 1)):
-    #        f.write(dim.generate_insert_statement())
-    sys.stdout.write(sql)
-    sys.stdout.flush()
+def valid_date(s):
+    try:
+        dt = datetime.datetime.strptime(s, "%Y-%m-%d")
+        return dt.date()
+    except ValueError:
+        msg = "invalid date: '{0}'".format(s)
+        raise argparse.ArgumentTypeError(msg)
 
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Generate a date dimension schema and insertion script.')
+    parser.add_argument('start_date', metavar='D', type=valid_date,
+                        help='Epoch date for the generated dimension (yyyy-mm-dd format)')
+    parser.add_argument('-e', '--end-date', type=valid_date, default='2020-12-31',
+                        help='End date for generated dimension (yyyy-mm-dd format)')
+    parser.add_argument('-o', '--output-file', type=argparse.FileType('w'), default='date_dimension_inserts.sql',
+                        help='Output destination for the INSERT script')
+
+    args = parser.parse_args()
+
+    with args.output_file as out:
+       for dim in generate_date_dimension(args.start_date, args.end_date):
+           out.write(dim.generate_insert_statement())
