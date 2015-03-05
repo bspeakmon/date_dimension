@@ -5,8 +5,7 @@ import argparse
 
 class StepDimensionGenerator(object):
 
-    INSERT_TEMPLATE = """
-      INSERT INTO step_dim (step_dim_key, total_steps, this_step, steps_remaining) VALUES ({}, {}, {}, {});"""
+    INSERT_TEMPLATE = """INSERT INTO step_dim (step_dim_key, total_steps, this_step, steps_remaining) VALUES ({}, {}, {}, {});"""
 
     def __init__(self, max_steps, output_file):
         self.max_steps = max_steps
@@ -20,8 +19,8 @@ class StepDimensionGenerator(object):
                 inserts.append(
                     self.INSERT_TEMPLATE.format(
                         row_key, session, step, session - step
-                        )
                     )
+                )
                 row_key += 1
 
         for insert in inserts:
